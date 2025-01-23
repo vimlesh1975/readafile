@@ -1,35 +1,36 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import io from 'socket.io-client'; // Import socket.io-client
+
+const socket = io(); // Connect to the WebSocket server
 
 export default function DisplayFilePage() {
   const [fileContent, setFileContent] = useState('');
   const [error, setError] = useState('');
 
   useEffect(() => {
-    // Fetch the data from the API
-    const fetchFileContent = async () => {
-      try {
-        const response = await fetch('/api/read-file');
-        const data = await response.json();
+    // Listen for file updates
+    socket.on('file-update', (data) => {
+      setFileContent(data.content || 'File is empty.');
+    });
 
-        if (response.ok) {
-          setFileContent(data.content);
-        } else {
-          setError(data.error || 'Failed to fetch file content.');
-        }
-      } catch (err) {
-        setError('An error occurred while fetching file content.');
-        console.error('Fetch error:', err);
-      }
+    // Handle errors
+    socket.on('connect_error', (err) => {
+      console.error('WebSocket connection error:', err.message);
+      setError('Unable to connect to WebSocket server.');
+    });
+
+    // Cleanup socket listeners on component unmount
+    return () => {
+      socket.off('file-update');
+      socket.off('connect_error');
     };
-
-    fetchFileContent();
   }, []);
 
   return (
     <div style={{ padding: '20px', fontFamily: 'Arial, sans-serif' }}>
-      <h1>File Content</h1>
+      <h1>Real-Time File Monitor</h1>
       {error ? (
         <p style={{ color: 'red' }}>{error}</p>
       ) : (
@@ -41,7 +42,7 @@ export default function DisplayFilePage() {
             overflowX: 'auto',
           }}
         >
-          {fileContent || 'Loading...'}
+          {fileContent || 'Waiting for file updates...'}
         </pre>
       )}
     </div>
