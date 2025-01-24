@@ -48,7 +48,7 @@ app.prepare().then(() => {
     // Send the initial file content when a client connects
     try {
       const content = fs.readFileSync(filePath, 'utf8');
-      socket.emit('file-update', { content }); // Send initial content to client
+      io.emit('file-update', { content }); // Send initial content to client
     } catch (err) {
       console.error('Error reading file on connection:', err.message);
     }

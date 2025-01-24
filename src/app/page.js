@@ -10,6 +10,16 @@ export default function DisplayFilePage() {
   const [error, setError] = useState('');
 
   useEffect(() => {
+
+    fetch('/api/file-monitor')
+      .then(response => response.json())
+      .then(data => {
+        setFileContent(data.content);
+      })
+      .catch(error => {
+        console.error('Error:', error);
+      });
+
     // Listen for file updates
     socket.on('file-update', (data) => {
       setFileContent(data.content || 'File is empty.');
@@ -42,7 +52,7 @@ export default function DisplayFilePage() {
             overflowX: 'auto',
           }}
         >
-          {fileContent || 'Waiting for file updates...'}
+          {fileContent}
         </pre>
       )}
     </div>
